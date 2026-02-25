@@ -1,0 +1,77 @@
+# =============================================================================
+# Plotting Configuration
+# =============================================================================
+# Central configuration for all pipeline visualisation figures.
+
+# -----------------------------------------------------------------------------
+# Global Output Settings
+# -----------------------------------------------------------------------------
+output:
+  save_figures: true           # Save figures to disk
+  show_figures: false          # Display figures interactively
+  output_dir: "output/plots"   # Relative to project root
+  format: "png"                # png, pdf, svg
+  dpi: 150
+  downsample_hz: 100           # Downsample continuous signals to this frequency for plotting
+
+# -----------------------------------------------------------------------------
+# Theme Settings (Applied to All Figures)
+# -----------------------------------------------------------------------------
+theme:
+  style: "seaborn-v0_8-whitegrid"
+  font_family: "sans-serif"
+  title_fontsize: 14
+  label_fontsize: 11
+  tick_fontsize: 9
+  legend_fontsize: 9
+  figure_width: 12
+  
+  # Colour palette for consistent styling
+  colors:
+    raw: "#888888"           # Grey for raw signals
+    cleaned: "#2E86AB"       # Blue for cleaned/filtered signals
+    filtered: "#2E86AB"      # Alias for pressure
+    r_peaks: "#E63946"       # Red for R-peak markers
+    
+    # Beat gating colours
+    accepted: "#2A9D8F"      # Teal green for accepted beats
+    rejected: "#E63946"      # Red for rejected beats
+    
+    # Beat classification colours
+    rv: "#457B9D"            # Blue for Right Ventricle
+    pa: "#E9C46A"            # Yellow/gold for Pulmonary Artery
+    uncertain: "#AAAAAA"     # Grey for uncertain classification
+    
+    # Feature markers
+    p_max: "#E63946"         # Systolic peak
+    p_min_onset: "#2A9D8F"   # Onset minimum
+    p_min_decay: "#457B9D"   # Decay minimum
+    dpdt_max: "#F4A261"      # Max upstroke
+    dpdt_min: "#9B5DE5"      # Max downstroke
+    t_zpoint: "#00F5D4"      # Z-point timing
+
+# -----------------------------------------------------------------------------
+# Figure Toggles (Which Plots to Generate)
+# -----------------------------------------------------------------------------
+figures:
+  # Figure 1: ECG Features
+  ecg_features:
+    enabled: true
+    show_pqrst: true         # Sub 4: PQRST markers (if data available)
+  
+  # Figure 2: Pressure Features
+  pressure_features:
+    enabled: true
+    show_r_peak_lines: true  # Vertical lines across all subplots
+  
+  # Figure 3: Beat Gating
+  beat_gating:
+    enabled: true
+    show_rejection_labels: true  # Annotate rejection reasons
+  
+  # Figure 4: Beat Classification
+  beat_classification:
+    enabled: true
+    feature_subplots:        # Which feature timeseries to show
+      - p_max
+      - p_min_decay

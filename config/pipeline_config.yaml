@@ -1,0 +1,150 @@
+# Pipeline Configuration
+# Central configuration for the RHC Variability Analysis pipeline
+# See docs/specs/ for detailed parameter descriptions
+
+# =============================================================================
+# ECG Features (Spec 03)
+# =============================================================================
+ecg_features:
+  # --- Signal Cleaning ---
+  # Method for nk.ecg_clean(): neurokit, biosppy, pantompkins1985, hamilton2002, etc.
+  clean_method: "neurokit"
+  
+  # Powerline frequency (Hz) - Fixed to 50Hz for UK data
+  powerline_freq: 50
+  
+  # --- R-Peak Detection ---
+  # Method for nk.ecg_peaks(): kalidas2017, neurokit, promac, khamis2016, 
+  # pantompkins1985, hamilton2002, elgendi2010, engzeemod2012, etc.
+  # neurokit is default: uses gradient + local max refinement
+  peak_method: "neurokit"
+  
+  # --- PQRST Delineation ---
+  # Return full PQRST features (P-peaks, Q-peaks, S-peaks, T-peaks, etc.)
+  # WARNING: Increases memory usage significantly for long recordings
+  return_pqrst_features: true
+  # Method for nk.ecg_delineate(): dwt (wavelet), peak
+  delineate_method: "dwt"
+  
+  # --- Quality Assessment ---
+  # Method for continuous SQI: averageQRS (template matching)
+  sqi_method: "averageQRS"
+  # Zhao2018 categorical quality is always calculated separately
+  
+  # Minimum signal duration for reliable processing (seconds)
+  min_duration_sec: 10
+
+# =============================================================================
+# Pressure Features (Spec 04)
+# =============================================================================
+pressure_features:
+  # Low-pass Butterworth filter for pressure signal
+  lowpass_cutoff_hz: 20.0
+  lowpass_order: 4
+  
+  # Savitzky-Golay filter for dP/dt calculation
+  # Window is specified in seconds, converted to samples internally
+  savgol_window_sec: 0.025  # 25ms
+  savgol_polyorder: 2
+
+# =============================================================================
+# Beat Gating (Spec 05)
+# =============================================================================
+beat_gating:
+  # --- ECG Quality Checks ---
+  # Minimum template match SQI (0.0 to 1.0)
+  sqi_threshold: 0.7
+  
+  # Kubios artifact detection mode: 'flagging', 'correction', or 'disabled'
+  kubios_mode: "flagging"
+  
+  # Physiological RR limits (ms)
+  rr_min_ms: 300   # Max HR ~200 bpm
+  rr_max_ms: 2000  # Min HR ~30 bpm
+  
+  # Arrhythmia detection (20% rule)
+  ectopic_threshold: 0.20
+  median_window: 5  # Beats for rolling median
+  
+  # --- Pressure Quality Checks ---
+  # Slew rate limits for whip detection (mmHg/s)
+  dp_dt_max_limit: 1500
+  dp_dt_min_limit: -1000
+  
+  # Minimum dP/dt for mechanical coupling (phantom detection)
+  dp_dt_min_coupling: 10
+  
+  # Sudden jump filter threshold (mmHg)
+  jump_threshold_mmhg: 20
+  
+  # Rolling median outlier filter
+  rolling_median_pct: 0.20    # Relative deviation
+  rolling_median_floor: 4.0   # Absolute floor (mmHg)
+  rolling_median_window: 30   # Beats
+  
+  # Physiological pressure range (mmHg)
+  p_max_upper: 200
+  p_max_lower: 2
+  pulse_pressure_min: 2
+  
+  # Gap check maximum RR (ms)
+  gap_max_ms: 3000
+
+# =============================================================================
+# Beat Classification (Spec 06)
+# =============================================================================
+beat_classification:
+  # Adaptive threshold for "active" beats
+  sys_hard_floor: 40       # Minimum p_max to be in reference population (mmHg)
+  sys_ref_percentile: 75   # Percentile for operating pressure
+  sys_tolerance: 0.20      # Allowable drop from operating pressure
+  
+  # Pulse Pressure Check
+  # Minimum PP = P_active * pp_fraction
+  pp_fraction: 0.30        # Pulse pressure must be >= 30% of active systolic threshold
+  
+  # PA diastolic threshold (Adaptive)
+  # Threshold = max(P_active * dia_factor, dia_floor)
+  dia_factor: 0.25          # relative to P_active
+  dia_floor: 8.0            # absolute minimum (mmHg)
+  
+  # Safety floor for artifacts
+  min_valid_pressure: -10
+
+# =============================================================================
+# Clinical Indices (Spec 07)
+# =============================================================================
+clinical_indices:
+  # Conversion factor for PVR to dyn·s·cm⁻⁵
+  pvr_conversion: 80
+  
+  # Minimum beats required for valid calculation
+  min_beats_required: 30
+
+# =============================================================================
+# Autonomic Indices (Spec 08)
+# =============================================================================
+autonomic_indices:
+  # Fixed epoch duration (seconds) — 128s = 512 samples at 4 Hz = 3 Welch segments
+  epoch_len_sec: 128
+  
+  # Maximum inter-beat gap for continuous segment (seconds)
+  # Gaps > this break the segment (HF band limit = 1/0.4 Hz = 2.5s)
+  max_gap_sec: 2.5
+  
+  # Frequency bands (Hz)
+  lf_band: [0.04, 0.15]
+  hf_band: [0.15, 0.40]
+  
+  # Resampling for Welch/coherence
+  resample_hz: 4
+  interpolation: "akima"
+  
+  # Welch PSD parameters
+  welch_segment_len: 256   # samples (64s at 4 Hz)
+  welch_overlap_pct: 50
+  
+  # BRS sequence method
+  brs_lags: [0, 1, 2, 3]
+  brs_min_sequence: 3
+  brs_r_threshold: 0.8

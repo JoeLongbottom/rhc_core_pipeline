@@ -1,0 +1,26 @@
+# Ingestion Configuration
+# See docs/specs/01_waveform_ingestion.md and 02_clinical_metadata_extraction.md
+
+waveform:
+  # Required channel names (case-insensitive exact match)
+  required_channels:
+    - ECG
+    - Pressure
+  
+  # Pressure values in .mat are stored as mmHg/100
+  # Multiply by this factor to get true mmHg
+  pressure_scale_factor: 100
+
+clinical_extraction:
+  # Valid range for cardiac output values (L/min)
+  co_range:
+    min: 2.0
+    max: 20.0
+  
+  # Valid range for heart rate (bpm)
+  hr_range:
+    min: 40
+    max: 200
+  
+  # RV and PA systolic should be within this tolerance (mmHg)
+  rv_pa_systolic_tolerance: 15
